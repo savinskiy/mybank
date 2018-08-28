@@ -8,5 +8,203 @@
   <artifactId>my-bank</artifactId>
   <version>1.0-SNAPSHOT</version>
 
+  <properties>
+    <vertx.version>3.5.3</vertx.version>
+    <hibernate-version>5.3.5.Final</hibernate-version>
+    <guice.version>4.2.0</guice.version>
+    <lombok.version>1.18.2</lombok.version>
+    <mapstruct.version>1.2.0.Final</mapstruct.version>
+  </properties>
 
+  <dependencies>
+
+    <!--vertx dependencies-->
+
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-core</artifactId>
+      <version>${vertx.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-web</artifactId>
+      <version>${vertx.version}</version>
+    </dependency>
+
+    <!--todo: check if we need it-->
+    <!--<dependency>-->
+      <!--<groupId>com.englishtown.vertx</groupId>-->
+      <!--<artifactId>vertx-guice</artifactId>-->
+      <!--<version>2.3.1</version>-->
+    <!--</dependency>-->
+
+    <!--guice dependencies-->
+
+    <dependency>
+      <groupId>com.google.inject</groupId>
+      <artifactId>guice</artifactId>
+      <version>${guice.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.google.inject.extensions</groupId>
+      <artifactId>guice-persist</artifactId>
+      <version>${guice.version}</version>
+    </dependency>
+
+    <!--database dependencies-->
+
+    <!--yandex embedded database-->
+    <!--<dependency>-->
+      <!--<groupId>ru.yandex.qatools.embed</groupId>-->
+      <!--<artifactId>postgresql-embedded</artifactId>-->
+      <!--<version>2.9</version>-->
+    <!--</dependency>-->
+
+    <!--postgres driver-->
+    <!--<dependency>-->
+      <!--<groupId>postgresql</groupId>-->
+      <!--<artifactId>postgresql</artifactId>-->
+      <!--<version>9.0-801.jdbc4</version>-->
+    <!--</dependency>-->
+
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <version>1.4.197</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-core</artifactId>
+      <version>${hibernate-version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-entitymanager</artifactId>
+      <version>${hibernate-version}</version>
+    </dependency>
+
+    <!--other dependencies-->
+
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>${lombok.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.mapstruct</groupId>
+      <artifactId>mapstruct</artifactId>
+      <version>${mapstruct.version}</version>
+      <!--<scope>provided</scope>-->
+    </dependency>
+
+    <dependency>
+      <groupId>org.mapstruct</groupId>
+      <artifactId>mapstruct-processor</artifactId>
+      <version>${mapstruct.version}</version>
+      <!--<scope>provided</scope>-->
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.25</version>
+    </dependency>
+
+    <!--swagger for vertx-->
+    <dependency>
+      <groupId>com.gatehill.vertx-oas</groupId>
+      <artifactId>vertx-oas</artifactId>
+      <version>1.0.1</version>
+    </dependency>
+
+    <!--test dependencies-->
+
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>3.8.0</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-unit</artifactId>
+      <version>${vertx.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.3</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>2.3</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <transformers>
+                <transformer
+                  implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <manifestEntries>
+                    <Main-Class>Main</Main-Class>
+                    <!--<Main-Class>io.vertx.core.Launcher</Main-Class>-->
+                    <!--<Main-Verticle>rest.routersverLauncher</Main-Verticle>-->
+                  </manifestEntries>
+                </transformer>
+              </transformers>
+              <artifactSet/>
+              <outputFile>
+                ${project.build.directory}/${project.artifactId}-${project.version}-fat.jar
+              </outputFile>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!--todo: don't build simple jar if it's possible (later) -->
+    </plugins>
+  </build>
+
+  <!--for vertx oas-->
+  <repositories>
+    <repository>
+      <id>gatehillsoftware-snapshots</id>
+      <name>Gatehill Software Snapshots</name>
+      <url>https://s3-eu-west-1.amazonaws.com/gatehillsoftware-maven/snapshots</url>
+    </repository>
+    <repository>
+      <id>sonatype-snapshots</id>
+      <name>Sonatype OSS Snapshots</name>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </repository>
+  </repositories>
 </project>

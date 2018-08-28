@@ -31,4 +31,5 @@ hs_err_pid*
 
 .idea/
 mybank.iml
-src/
+#/src/main/resources/pg-config/
+/data/
