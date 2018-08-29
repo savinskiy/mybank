@@ -25,9 +25,7 @@ public class Transaction extends IdentifiedEntity {
   @JoinColumn(name = "account_id_from")
   private Account accountFrom;
 
-  // TODO: 29.08.2018 check in tests a problem
-  @ManyToOne
-//  @ManyToOne(optional = false)
+  @ManyToOne(optional = false)
   @JoinColumn(name = "account_id_to")
   private Account accountTo;
 }
