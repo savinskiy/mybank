@@ -27,7 +27,7 @@ public class DbModule extends AbstractModule {
   public static String APPLICATION_PROPERTIES = "src/main/resources/application.properties";
 
   // hack for vertx injection
-  public static Properties getProperties () {
+  public static Properties getProperties() {
     return properties;
   }
 

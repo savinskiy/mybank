@@ -1,4 +1,4 @@
-package rest.routers;
+package rest;
 
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static io.vertx.core.http.HttpHeaders.CONTENT_TYPE;
@@ -14,6 +14,8 @@ import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.ErrorHandler;
+import rest.routers.AccountRouter;
+import rest.routers.TransactionRouter;
 
 // TODO: 28.08.2018 make transactional annotations (later)
 // TODO: 25.08.2018 handle 404 (later)
@@ -21,12 +23,14 @@ import io.vertx.ext.web.handler.ErrorHandler;
 public class ServerLauncher extends AbstractVerticle {
 
   private AccountRouter accountRouter;
+  private TransactionRouter transactionRouter;
 
   @Override
   public void init(Vertx vertx, Context context) {
     super.init(vertx, context);
     Injector injector = DIContainer.getInjector();
     accountRouter = injector.getInstance(AccountRouter.class);
+    transactionRouter = injector.getInstance(TransactionRouter.class);
   }
 
   @Override
@@ -67,10 +71,19 @@ public class ServerLauncher extends AbstractVerticle {
       context.next();
     });
 
-    router.post("/accounts").handler(accountRouter::createAccount);
-    router.get("/accounts").handler(accountRouter::getAllAccounts);
-    router.get("/accounts/:accountId").handler(accountRouter::getAccountById);
-    router.delete("/accounts/:accountId").handler(accountRouter::deleteAccount);
+    router.post("/accounts").blockingHandler(accountRouter::createAccount, false);
+    router.get("/accounts").blockingHandler(accountRouter::getAllAccounts, false);
+    router.get("/accounts/:accountId").blockingHandler(accountRouter::getAccountById, false);
+    router.delete("/accounts/:accountId").blockingHandler(accountRouter::deleteAccount, false);
+
+    router.post("/transactions")
+        .blockingHandler(transactionRouter::createTransaction, false);
+    router.post("/transactions/deposit/:accountId")
+        .blockingHandler(transactionRouter::depositMoney, false);
+    router.get("/transactions")
+        .blockingHandler(transactionRouter::getAllTransactions, false);
+    router.get("/transactions/:transactionId")
+        .blockingHandler(transactionRouter::getTransactionById, false);
 
     // todo: fork and fix this so badly generated specification (later)
     RouterSpecGenerator.publishApiDocs(router, "/api/spec");

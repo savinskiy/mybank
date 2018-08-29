@@ -1,6 +1,5 @@
 package rest.to;
 
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,11 +9,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class AccountTo extends IdentifiedTo {
+public class TransactionTo extends IdentifiedTo {
 
-  private String name;
+  private BalanceTo amount;
 
-  private String details;
+  private long accountIdFrom;
 
-  private List<BalanceTo> balances;
+  private long accountIdTo;
 }

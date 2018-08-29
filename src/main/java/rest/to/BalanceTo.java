@@ -1,6 +1,6 @@
 package rest.to;
 
-import java.util.List;
+import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,11 +10,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class AccountTo extends IdentifiedTo {
+public class BalanceTo {
 
-  private String name;
+  private BigDecimal value;
 
-  private String details;
+  private Currency currency;
 
-  private List<BalanceTo> balances;
+  public enum Currency {
+    RUB, USD, GBP, BTC
+  }
 }
