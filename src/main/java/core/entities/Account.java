@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.persistence.Embedded;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,7 +24,7 @@ public class Account extends IdentifiedEntity implements Comparable<Account> {
 
   private String details;
 
-  @Embedded
+  @ElementCollection
   private List<Balance> balances = initBalances();
 
   @Override

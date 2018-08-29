@@ -13,7 +13,7 @@ public class TransactionTo extends IdentifiedTo {
 
   private BalanceTo amount;
 
-  private long accountIdFrom;
+  private Long accountIdFrom;
 
-  private long accountIdTo;
+  private Long accountIdTo;
 }
