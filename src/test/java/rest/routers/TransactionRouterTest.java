@@ -34,7 +34,7 @@ import rest.to.BalanceTo;
 import rest.to.TransactionTo;
 
 @RunWith(VertxUnitRunner.class)
-public class TransferControllerTest {
+public class TransactionRouterTest {
 
   private static final String ACC_START_AMOUNT = "12.3";
 
@@ -69,7 +69,8 @@ public class TransferControllerTest {
   //  @Repeat(1000)
   @Test
 //  @Ignore
-  public void testMyApplication(TestContext context) throws InterruptedException {
+  public void testIntensiveLoadWithTransactions(TestContext context) throws InterruptedException {
+
     int loops = 1000;
 //    create huge countdown for asynchronous completion, finish last query by complete
     final Async async = context.async(loops * 3);
