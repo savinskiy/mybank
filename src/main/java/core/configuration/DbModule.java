@@ -6,14 +6,14 @@ import com.google.inject.Singleton;
 import com.google.inject.name.Names;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.cfg.AvailableSettings;
 
 @Slf4j
 public class DbModule extends AbstractModule {
@@ -46,17 +46,9 @@ public class DbModule extends AbstractModule {
   @Singleton
   public EntityManagerFactory provideEntityManagerFactory() {
 
-    Map<Object, Object> hibernateProperties = new HashMap<>();
-
-    hibernateProperties.put(AvailableSettings.DRIVER, properties.get(AvailableSettings.DRIVER));
-    hibernateProperties.put(AvailableSettings.URL, properties.get(AvailableSettings.URL));
-    hibernateProperties.put(AvailableSettings.USER, properties.get(AvailableSettings.USER));
-    hibernateProperties.put(AvailableSettings.PASS, properties.get(AvailableSettings.PASS));
-    hibernateProperties.put(AvailableSettings.POOL_SIZE,
-        Integer.parseInt((String) properties.get(AvailableSettings.POOL_SIZE)));
-    hibernateProperties.put(AvailableSettings.DIALECT, properties.get(AvailableSettings.DIALECT));
-    hibernateProperties.put(AvailableSettings.HBM2DDL_AUTO,
-        properties.get(AvailableSettings.HBM2DDL_AUTO));
+    Map<Object, Object> hibernateProperties = properties.entrySet().stream()
+        .filter(e -> String.valueOf(e.getKey()).startsWith("hibernate."))
+        .collect(Collectors.toMap(Entry::getKey, this::mapValue));
 
     return Persistence.createEntityManagerFactory("db-manager", hibernateProperties);
   }
@@ -70,4 +62,29 @@ public class DbModule extends AbstractModule {
     return entityManager;
   }
 
+  private Object mapValue(Entry entry) {
+    final String value = (String) entry.getValue();
+    try {
+      return Integer.parseInt(value);
+    } catch (NumberFormatException e) {
+//      not long
+    }
+    try {
+      return Float.parseFloat(value);
+    } catch (NumberFormatException e) {
+//      not double
+    }
+    final Boolean parseBoolean = tryParseBoolean(value);
+    if (parseBoolean != null) {
+      return parseBoolean;
+    }
+    return value;
+  }
+
+  public Boolean tryParseBoolean(String inputBoolean) {
+    if (!inputBoolean.equals("true") && !inputBoolean.equals("false")) {
+      return null;
+    }
+    return Boolean.valueOf(inputBoolean);
+  }
 }

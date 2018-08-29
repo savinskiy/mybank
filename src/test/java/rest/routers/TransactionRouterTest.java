@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,8 +46,8 @@ public class TransactionRouterTest {
 
   private List<Long> accountIds;
 
-  @Rule
-  public RepeatRule rule = new RepeatRule();
+//  @Rule
+//  public RepeatRule rule = new RepeatRule();
 
   @Before
   public void setUp(TestContext context) {
