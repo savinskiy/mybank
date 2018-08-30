@@ -33,3 +33,4 @@ hs_err_pid*
 mybank.iml
 #/src/main/resources/pg-config/
 /data/
+/pg-config*/
