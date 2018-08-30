@@ -14,7 +14,7 @@ Configuration:
         Pattern: "%m%n"
     File:
       name: File
-      fileName: ${filename}
+      fileName: bank.log
       PatternLayout:
         Pattern: "%d %p %C{1.} [%t] %m%n"
       Filters:
