@@ -1,4 +1,5 @@
 import core.configuration.DIContainer;
+import core.configuration.DatabaseLauncher;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import rest.ServerLauncher;
@@ -8,6 +9,7 @@ import rest.ServerLauncher;
 public class Main {
 
   public static void main(String[] args) {
+    DatabaseLauncher.run(5432, "pg-config");
     // need to initialize it before deploying verticle
     DIContainer.getInjector();
     Vertx vertx = Vertx.vertx();

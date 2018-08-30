@@ -51,6 +51,7 @@ public class TransactionRouterTest {
   @Before
   public void setUp(TestContext context) {
     DbModule.APPLICATION_PROPERTIES = "src/test/resources/application.properties";
+    DatabaseLauncher.run(15432, "pg-config-test");
     // need to initialize it before deploying verticle
     accountDao = DIContainer.getInjector().getInstance(AccountDao.class);
     genericDao = DIContainer.getInjector().getInstance(GenericDao.class);
@@ -63,6 +64,7 @@ public class TransactionRouterTest {
 
   @After
   public void tearDown(TestContext context) {
+    DatabaseLauncher.stop();
     vertx.close(context.asyncAssertSuccess());
   }
 

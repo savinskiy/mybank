@@ -56,25 +56,25 @@
     <!--database dependencies-->
 
     <!--yandex embedded database-->
-    <!--<dependency>-->
-      <!--<groupId>ru.yandex.qatools.embed</groupId>-->
-      <!--<artifactId>postgresql-embedded</artifactId>-->
-      <!--<version>2.9</version>-->
-    <!--</dependency>-->
+    <dependency>
+      <groupId>ru.yandex.qatools.embed</groupId>
+      <artifactId>postgresql-embedded</artifactId>
+      <version>2.9</version>
+    </dependency>
 
     <!--postgres driver-->
-    <!--<dependency>-->
-      <!--<groupId>postgresql</groupId>-->
-      <!--<artifactId>postgresql</artifactId>-->
-      <!--<version>9.0-801.jdbc4</version>-->
-    <!--</dependency>-->
-
     <dependency>
-      <groupId>com.h2database</groupId>
-      <artifactId>h2</artifactId>
-      <version>1.4.197</version>
-      <scope>compile</scope>
+      <groupId>postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>9.0-801.jdbc4</version>
     </dependency>
+
+    <!--<dependency>-->
+      <!--<groupId>com.h2database</groupId>-->
+      <!--<artifactId>h2</artifactId>-->
+      <!--<version>1.4.197</version>-->
+      <!--<scope>compile</scope>-->
+    <!--</dependency>-->
 
     <dependency>
       <groupId>org.hibernate</groupId>
