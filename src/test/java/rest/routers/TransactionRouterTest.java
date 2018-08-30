@@ -1,6 +1,7 @@
 package rest.routers;
 
 import core.configuration.DIContainer;
+import core.configuration.DatabaseLauncher;
 import core.configuration.DbModule;
 import core.dao.AccountDao;
 import core.dao.GenericDao;
@@ -12,13 +13,12 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.RepeatRule;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.client.WebClient;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
@@ -26,7 +26,6 @@ import java.util.stream.IntStream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import rest.ServerLauncher;
@@ -38,16 +37,16 @@ import rest.to.TransactionTo;
 public class TransactionRouterTest {
 
   private static final String ACC_START_AMOUNT = "12.3";
+  private static final String SERVER_HOST = "localhost";
+
+  private int serverPort;
 
   private Vertx vertx;
 
   private AccountDao accountDao;
   private GenericDao<Transaction> genericDao;
 
-  private List<Long> accountIds;
-
-//  @Rule
-//  public RepeatRule rule = new RepeatRule();
+  private List<Long> accountIds = new ArrayList<>();
 
   @Before
   public void setUp(TestContext context) {
@@ -56,6 +55,7 @@ public class TransactionRouterTest {
     accountDao = DIContainer.getInjector().getInstance(AccountDao.class);
     genericDao = DIContainer.getInjector().getInstance(GenericDao.class);
     loadDatabase();
+    serverPort = getPortFromProperties();
     vertx = Vertx.vertx();
     vertx.deployVerticle(ServerLauncher.class.getName(),
         context.asyncAssertSuccess());
@@ -72,32 +72,51 @@ public class TransactionRouterTest {
 //  @Ignore
   public void testIntensiveLoadWithTransactions(TestContext context) throws InterruptedException {
 
-    int loops = 1000;
-//    create huge countdown for asynchronous completion, finish last query by complete
-    final Async async = context.async(loops * 3);
+    // assume that server could handle [batchRequests/0.1]=1000 requests per second
+    int batchRequests = 100;
+    int loops = 10;
+    // total [loops*batchRequests]=1000 transactions
+    int totalRequests = batchRequests * loops;
+    // +2 methods that make asserts in the end
+    final Async async = context.async(totalRequests + 2);
     // synchronization, wait till all transactions are completed
-    CountDownLatch latch = new CountDownLatch(loops);
+    CountDownLatch latch = new CountDownLatch(totalRequests);
 
     WebClient webClient = WebClient.create(vertx);
     for (int i = 0; i < loops; i++) {
 
-      TransactionTo transactionTo =
-          buildRandomTransaction(BalanceTo.Currency.BTC, 0.01);
+      for (int j = 0; j < batchRequests; j++) {
 
-      webClient.post(8082, "localhost", "/api/transactions")
-          .sendJson(transactionTo, ar -> {
-            latch.countDown();
-            if (ar.succeeded()) {
-              async.countDown();
-            } else {
-              System.out.println(ar.cause());
-            }
-          });
+        TransactionTo transactionTo =
+            buildRandomTransaction(BalanceTo.Currency.BTC, 0.01);
+
+        webClient.post(serverPort, SERVER_HOST, "/api/transactions")
+            .sendJson(transactionTo, ar -> {
+              latch.countDown();
+              if (ar.succeeded()) {
+                async.countDown();
+              } else {
+                System.out.println(ar.cause());
+              }
+            });
+      }
+      Thread.sleep(100);
     }
 
     latch.await();
 
-    webClient.get(8082, "localhost", "/api/accounts")
+    webClient.get(serverPort, SERVER_HOST, "/api/transactions")
+        .send(ar -> {
+          if (ar.succeeded()) {
+            List<TransactionTo> transactions = ar.result().bodyAsJson(List.class);
+            context.assertEquals(transactions.size(), totalRequests);
+            async.countDown();
+          } else {
+            System.out.println(ar.cause());
+          }
+        });
+
+    webClient.get(serverPort, SERVER_HOST, "/api/accounts")
         .send(ar -> {
           if (ar.succeeded()) {
             JsonArray accountsArray = ar.result().bodyAsJsonArray();
@@ -113,9 +132,10 @@ public class TransactionRouterTest {
                 .reduce(BigDecimal::add)
                 .orElseThrow(IllegalStateException::new);
 
-            BigDecimal actual = BigDecimal.valueOf(36.9).setScale(totalAmount.scale());
-            context.assertEquals(totalAmount, actual);
-            async.complete();
+            BigDecimal expected = new BigDecimal(ACC_START_AMOUNT).setScale(totalAmount.scale())
+                .multiply(BigDecimal.valueOf(accountIds.size()));
+            context.assertEquals(expected, totalAmount);
+            async.countDown();
           } else {
             System.out.println(ar.cause());
           }
@@ -127,11 +147,13 @@ public class TransactionRouterTest {
 
     Account account = buildAccount("alex", "details", Currency.BTC, ACC_START_AMOUNT);
     accountDao.save(account);
+    accountIds.add(account.getId());
     Account account2 = buildAccount("max", null, Currency.BTC, ACC_START_AMOUNT);
     accountDao.save(account2);
+    accountIds.add(account2.getId());
     Account account3 = buildAccount("leila", null, Currency.BTC, ACC_START_AMOUNT);
     accountDao.save(account3);
-    accountIds = Arrays.asList(account.getId(), account2.getId(), account3.getId());
+    accountIds.add(account3.getId());
   }
 
   private Account buildAccount(
@@ -177,5 +199,11 @@ public class TransactionRouterTest {
 
     int i = random.nextInt(ids.size());
     return ids.remove(i);
+  }
+
+  private int getPortFromProperties() {
+    Properties properties = DbModule.getProperties();
+    String port = properties.getProperty("server.port");
+    return Integer.parseInt(port);
   }
 }
