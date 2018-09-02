@@ -33,7 +33,8 @@ public class DatabaseLauncher {
       throw new IllegalStateException("Couldn't set up postgres", e);
     } catch (IllegalStateException e) {
       throw new IllegalStateException("Failed to start postgres due to: " + e.getMessage()
-          + ". Try to delete pg-config directory in this project", e);
+          + "\nTry to delete pg-config directory in this project.\n"
+          + "If it wouldn't help, check that there are no running PG processes on the port", e);
     }
   }
 
