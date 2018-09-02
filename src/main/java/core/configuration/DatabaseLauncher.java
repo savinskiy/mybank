@@ -31,10 +31,12 @@ public class DatabaseLauncher {
       }
     } catch (IOException e) {
       throw new IllegalStateException("Couldn't set up postgres", e);
+    } catch (IllegalStateException e) {
+      throw new IllegalStateException("Failed to start postgres due to: " + e.getMessage()
+          + ". Try to delete pg-config directory in this project", e);
     }
   }
 
-  // TODO: 02.09.2018 sort out why couldnt stop
   public static void stop() {
     if (embeddedPostgres != null) {
       try {
