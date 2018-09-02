@@ -56,17 +56,24 @@
     <!--database dependencies-->
 
     <!--yandex embedded database-->
+    <!--<dependency>-->
+      <!--<groupId>ru.yandex.qatools.embed</groupId>-->
+      <!--<artifactId>postgresql-embedded</artifactId>-->
+      <!--<version>2.9</version>-->
+    <!--</dependency>-->
+
+    <!--postgres embedded-->
     <dependency>
-      <groupId>ru.yandex.qatools.embed</groupId>
-      <artifactId>postgresql-embedded</artifactId>
-      <version>2.9</version>
+      <groupId>com.opentable.components</groupId>
+      <artifactId>otj-pg-embedded</artifactId>
+      <version>0.12.0</version>
     </dependency>
 
     <!--postgres driver-->
     <dependency>
-      <groupId>postgresql</groupId>
+      <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>9.0-801.jdbc4</version>
+      <version>42.2.4</version>
     </dependency>
 
     <!--<dependency>-->

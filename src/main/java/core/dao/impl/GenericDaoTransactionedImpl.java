@@ -28,8 +28,17 @@ public class GenericDaoTransactionedImpl<T extends IdentifiedEntity> implements 
 
   @Override
   public List<T> getAll(Class<T> clazz) {
-    return entityManager.createQuery(
-        "Select t from " + clazz.getSimpleName() + " t").getResultList();
+    // TODO: 02.09.2018 check why sometimes it couldn't be executed for the first time
+    for (int i = 0; i < 5; i++) {
+      try {
+        return entityManager.createQuery(
+            "Select t from " + clazz.getSimpleName() + " t").getResultList();
+      } catch (Exception e) {
+        System.out.println(e);
+        System.out.println("Repeat number: " + (i + 1));
+      }
+    }
+    return null;
   }
 
   @Override

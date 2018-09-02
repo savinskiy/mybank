@@ -1,43 +1,56 @@
 package core.configuration;
 
-import static java.util.Arrays.asList;
-import static ru.yandex.qatools.embed.postgresql.EmbeddedPostgres.DEFAULT_DB_NAME;
-import static ru.yandex.qatools.embed.postgresql.EmbeddedPostgres.DEFAULT_HOST;
-import static ru.yandex.qatools.embed.postgresql.EmbeddedPostgres.DEFAULT_PASSWORD;
-import static ru.yandex.qatools.embed.postgresql.EmbeddedPostgres.DEFAULT_USER;
-import static ru.yandex.qatools.embed.postgresql.EmbeddedPostgres.cachedRuntimeConfig;
-import static ru.yandex.qatools.embed.postgresql.distribution.Version.Main.PRODUCTION;
-
+import com.opentable.db.postgres.embedded.EmbeddedPostgres;
+import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.List;
-import ru.yandex.qatools.embed.postgresql.EmbeddedPostgres;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
-// TODO: 30.08.2018 check how to run as privileged user
 // TODO: 30.08.2018 move out properties to config
 public class DatabaseLauncher {
 
-  private static EmbeddedPostgres postgres = null;
+  private static final String DEFAULT_USERNAME = "postgres";
+  private static final String TEST_DATABASE_NAME = "test";
 
-  private static final List<String> DEFAULT_ADD_PARAMS = asList(
-      "-E", "SQL_ASCII",
-      "--locale=C",
-      "--lc-collate=C",
-      "--lc-ctype=C");
+  private static EmbeddedPostgres embeddedPostgres;
 
   public static void run(int port, String pgConfigDir) {
-
     try {
-      postgres = new EmbeddedPostgres(PRODUCTION, pgConfigDir);
-      final String url = postgres.start(
-          cachedRuntimeConfig(Paths.get(pgConfigDir + "/cache")), DEFAULT_HOST,
-          port, DEFAULT_DB_NAME, DEFAULT_USER, DEFAULT_PASSWORD, DEFAULT_ADD_PARAMS
-      );
-    } catch (Exception e) {
-      e.printStackTrace();
+      embeddedPostgres = EmbeddedPostgres.builder()
+          .setPort(port)
+          .setLocaleConfig("locale", "C")
+          .setLocaleConfig("lc-collate", "C")
+          .setLocaleConfig("lc-ctype", "C")
+          .setDataDirectory(Paths.get("pg-config").toAbsolutePath())
+          .start();
+      try (Connection connection = embeddedPostgres.getPostgresDatabase().getConnection()) {
+        createDatabase(connection, TEST_DATABASE_NAME, DEFAULT_USERNAME);
+      } catch (SQLException e) {
+        System.out.println("Failed to create database: " + e.getMessage());
+      }
+    } catch (IOException e) {
+      throw new IllegalStateException("Couldn't set up postgres", e);
     }
   }
 
+  // TODO: 02.09.2018 sort out why couldnt stop
   public static void stop() {
-    postgres.stop();
+    if (embeddedPostgres != null) {
+      try {
+        embeddedPostgres.close();
+      } catch (Exception e) {
+        throw new IllegalStateException("Couldn't shut down database", e);
+      }
+    }
+  }
+
+  private static void createDatabase(Connection c, String dbName, String userName)
+      throws SQLException {
+    String createQuery = "CREATE DATABASE %s OWNER %s ENCODING = 'utf8'";
+
+    try (PreparedStatement ps = c.prepareStatement(String.format(createQuery, dbName, userName))) {
+      ps.execute();
+    }
   }
 }

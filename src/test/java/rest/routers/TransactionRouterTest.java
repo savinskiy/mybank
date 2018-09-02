@@ -13,6 +13,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
+import io.vertx.ext.unit.junit.Timeout;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.client.WebClient;
 import java.math.BigDecimal;
@@ -25,7 +26,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import rest.ServerLauncher;
@@ -47,6 +48,9 @@ public class TransactionRouterTest {
   private GenericDao<Transaction> genericDao;
 
   private List<Long> accountIds = new ArrayList<>();
+
+  @Rule
+  public Timeout timeoutRule = Timeout.seconds(300);
 
   @Before
   public void setUp(TestContext context) {
@@ -74,35 +78,27 @@ public class TransactionRouterTest {
 //  @Ignore
   public void testIntensiveLoadWithTransactions(TestContext context) throws InterruptedException {
 
-    // assume that server could handle [batchRequests/0.1]=1000 requests per second
-    int batchRequests = 100;
-    int loops = 10;
-    // total [loops*batchRequests]=1000 transactions
-    int totalRequests = batchRequests * loops;
+    int totalRequests = 3000;
     // +2 methods that make asserts in the end
     final Async async = context.async(totalRequests + 2);
     // synchronization, wait till all transactions are completed
     CountDownLatch latch = new CountDownLatch(totalRequests);
 
     WebClient webClient = WebClient.create(vertx);
-    for (int i = 0; i < loops; i++) {
+    for (int i = 0; i < totalRequests; i++) {
 
-      for (int j = 0; j < batchRequests; j++) {
+      TransactionTo transactionTo =
+          buildRandomTransaction(BalanceTo.Currency.BTC, 0.01);
 
-        TransactionTo transactionTo =
-            buildRandomTransaction(BalanceTo.Currency.BTC, 0.01);
-
-        webClient.post(serverPort, SERVER_HOST, "/api/transactions")
-            .sendJson(transactionTo, ar -> {
-              latch.countDown();
-              if (ar.succeeded()) {
-                async.countDown();
-              } else {
-                System.out.println(ar.cause());
-              }
-            });
-      }
-      Thread.sleep(100);
+      webClient.post(serverPort, SERVER_HOST, "/api/transactions")
+          .sendJson(transactionTo, ar -> {
+            latch.countDown();
+            if (ar.succeeded()) {
+              async.countDown();
+            } else {
+              System.out.println(ar.cause());
+            }
+          });
     }
 
     latch.await();
