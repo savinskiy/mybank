@@ -11,12 +11,12 @@ Configuration:
     Console:
       name: STDOUT
       PatternLayout:
-        Pattern: "%m%n"
+        Pattern: "%highlight{%level}{ERROR=red, WARN=yellow, INFO=green, DEBUG=blue} %m%n"
     File:
       name: File
       fileName: bank.log
       PatternLayout:
-        Pattern: "%d %p %C{1.} [%t] %m%n"
+        Pattern: "%d %p %C{1.} [%t] %highlight{%level}{ERROR=red, WARN=yellow, INFO=green, DEBUG=blue} %m%n"
       Filters:
         ThresholdFilter:
           level: error
