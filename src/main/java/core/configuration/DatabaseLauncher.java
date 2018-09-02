@@ -6,8 +6,10 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import lombok.extern.slf4j.Slf4j;
 
 // TODO: 30.08.2018 move out properties to config
+@Slf4j
 public class DatabaseLauncher {
 
   private static final String DEFAULT_USERNAME = "postgres";
@@ -16,18 +18,20 @@ public class DatabaseLauncher {
   private static EmbeddedPostgres embeddedPostgres;
 
   public static void run(int port, String pgConfigDir) {
+    log.info("Start embedded postgres on localhost by port: {}", port);
+    log.debug("Database config directory: {}", pgConfigDir);
     try {
       embeddedPostgres = EmbeddedPostgres.builder()
           .setPort(port)
           .setLocaleConfig("locale", "C")
           .setLocaleConfig("lc-collate", "C")
           .setLocaleConfig("lc-ctype", "C")
-          .setDataDirectory(Paths.get("pg-config").toAbsolutePath())
+          .setDataDirectory(Paths.get(pgConfigDir).toAbsolutePath())
           .start();
       try (Connection connection = embeddedPostgres.getPostgresDatabase().getConnection()) {
         createDatabase(connection, TEST_DATABASE_NAME, DEFAULT_USERNAME);
       } catch (SQLException e) {
-        System.out.println("Failed to create database: " + e.getMessage());
+        log.warn("Failed to create database: " , e.getMessage(), e);
       }
     } catch (IOException e) {
       throw new IllegalStateException("Couldn't set up postgres", e);
@@ -52,6 +56,7 @@ public class DatabaseLauncher {
       throws SQLException {
     String createQuery = "CREATE DATABASE %s OWNER %s ENCODING = 'utf8'";
 
+    log.info("Create database '{}' with user: {}", userName);
     try (PreparedStatement ps = c.prepareStatement(String.format(createQuery, dbName, userName))) {
       ps.execute();
     }
