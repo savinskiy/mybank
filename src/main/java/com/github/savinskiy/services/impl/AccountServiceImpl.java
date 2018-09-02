@@ -29,6 +29,7 @@ public class AccountServiceImpl implements AccountService {
   @Override
   public AccountTo addAccount(AccountTo accountTo) {
     Account account = accountConverter.toEntity(accountTo);
+    account.setDeleted(false);
     accountDao.save(account);
     AccountTo resultTo = accountConverter.toTo(account);
     return resultTo;
@@ -53,6 +54,7 @@ public class AccountServiceImpl implements AccountService {
   @Override
   public void deleteAccountById(Long id) {
     Account account = accountDao.getByIdOrThrowException(Account.class, id);
-    accountDao.delete(account);
+    account.setDeleted(true);
+    accountDao.update(account);
   }
 }
