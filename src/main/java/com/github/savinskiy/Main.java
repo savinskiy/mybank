@@ -10,6 +10,8 @@ import com.github.savinskiy.rest.ServerLauncher;
 
 //// TODO: 23.08.2018 todo multimodule, probably get rid of guice dependency
 //// TODO: 23.08.2018 todo logs
+// TODO: 02.09.2018 injection of database initializer
+// TODO: 02.09.2018 readme
 //@Slf4j
 public class Main {
 

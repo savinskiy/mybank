@@ -73,7 +73,7 @@ public class TransactionRouterTest {
   }
 
   // TODO: 29.08.2018 write tests for other API
-  //  @Repeat(1000)
+//    @Repeat(100)
   @Test
 //  @Ignore
   public void testIntensiveLoadWithTransactions(TestContext context) throws InterruptedException {
