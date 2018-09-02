@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,7 +25,7 @@ public class Account extends IdentifiedEntity implements Comparable<Account> {
 
   private String details;
 
-  @ElementCollection
+  @ElementCollection(fetch = FetchType.EAGER)
   private List<Balance> balances = initBalances();
 
   @Override
