@@ -1,14 +1,14 @@
 package com.github.savinskiy.services.impl;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
 import com.github.savinskiy.converters.AccountConverter;
-import com.github.savinskiy.core.dao.GenericDao;
+import com.github.savinskiy.core.dao.AccountDao;
 import com.github.savinskiy.core.entities.Account;
-import java.util.List;
-import java.util.stream.Collectors;
 import com.github.savinskiy.rest.to.AccountTo;
 import com.github.savinskiy.services.AccountService;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import java.util.List;
+import java.util.stream.Collectors;
 
 // TODO: 25.08.2018 lombok injection (later)
 // TODO: 25.08.2018 uuid (later)
@@ -16,27 +16,27 @@ import com.github.savinskiy.services.AccountService;
 @Singleton
 public class AccountServiceImpl implements AccountService {
 
-  private final GenericDao<Account> genericDao;
+  private final AccountDao accountDao;
   private final AccountConverter accountConverter;
 
   @Inject
-  public AccountServiceImpl(GenericDao genericDao,
+  public AccountServiceImpl(AccountDao accountDao,
       AccountConverter accountConverter) {
-    this.genericDao = genericDao;
+    this.accountDao = accountDao;
     this.accountConverter = accountConverter;
   }
 
   @Override
   public AccountTo addAccount(AccountTo accountTo) {
     Account account = accountConverter.toEntity(accountTo);
-    genericDao.save(account);
+    accountDao.save(account);
     AccountTo resultTo = accountConverter.toTo(account);
     return resultTo;
   }
 
   @Override
   public List<AccountTo> getAccounts() {
-    List<Account> accounts = genericDao.getAll(Account.class);
+    List<Account> accounts = accountDao.getAll(Account.class);
     List<AccountTo> accountTos = accounts.stream()
         .map(accountConverter::toTo)
         .collect(Collectors.toList());
@@ -45,14 +45,14 @@ public class AccountServiceImpl implements AccountService {
 
   @Override
   public AccountTo getAccountById(Long id) {
-    Account account = genericDao.getByIdOrThrowException(Account.class, id);
+    Account account = accountDao.getByIdOrThrowException(Account.class, id);
     AccountTo accountTo = accountConverter.toTo(account);
     return accountTo;
   }
 
   @Override
   public void deleteAccountById(Long id) {
-    Account account = genericDao.getByIdOrThrowException(Account.class, id);
-    genericDao.delete(account);
+    Account account = accountDao.getByIdOrThrowException(Account.class, id);
+    accountDao.delete(account);
   }
 }

@@ -1,14 +1,14 @@
 package com.github.savinskiy.converters;
 
-import com.google.inject.Inject;
-import com.github.savinskiy.core.dao.GenericDao;
+import com.github.savinskiy.core.dao.AccountDao;
 import com.github.savinskiy.core.entities.Account;
 import com.github.savinskiy.core.entities.Transaction;
+import com.github.savinskiy.rest.to.TransactionTo;
+import com.google.inject.Inject;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
 import org.mapstruct.factory.Mappers;
-import com.github.savinskiy.rest.to.TransactionTo;
 
 @Mapper(componentModel = "jsr330", uses = BalanceConverter.class)
 public abstract class TransactionConverter implements
@@ -17,7 +17,7 @@ public abstract class TransactionConverter implements
   public final static TransactionConverter INSTANCE = Mappers.getMapper(TransactionConverter.class);
 
   @Inject
-  private GenericDao<Account> genericDao;
+  private AccountDao accountDao;
 
   @Mappings({
       @Mapping(target = "id", ignore = true),
@@ -35,7 +35,7 @@ public abstract class TransactionConverter implements
   public abstract TransactionTo toTo(Transaction entity);
 
   public Account map(long id) {
-    Account account = genericDao.getByIdOrThrowException(Account.class, id);
+    Account account = accountDao.getByIdOrThrowException(Account.class, id);
     return account;
   }
 }
