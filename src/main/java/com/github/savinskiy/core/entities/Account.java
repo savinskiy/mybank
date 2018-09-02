@@ -23,6 +23,8 @@ public class Account extends IdentifiedEntity implements Comparable<Account> {
 
   private String name;
 
+  private boolean isDeleted;
+
   private String details;
 
   @ElementCollection(fetch = FetchType.EAGER)

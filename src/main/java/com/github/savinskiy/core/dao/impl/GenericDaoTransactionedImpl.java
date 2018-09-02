@@ -1,13 +1,13 @@
 package com.github.savinskiy.core.dao.impl;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
 import com.github.savinskiy.core.dao.GenericDao;
 import com.github.savinskiy.core.entities.IdentifiedEntity;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import java.util.List;
 import java.util.Optional;
-import javax.persistence.EntityExistsException;
 import javax.persistence.EntityManager;
+import javax.persistence.EntityNotFoundException;
 
 @Singleton
 public class GenericDaoTransactionedImpl<T extends IdentifiedEntity> implements GenericDao<T> {
@@ -49,13 +49,20 @@ public class GenericDaoTransactionedImpl<T extends IdentifiedEntity> implements 
   @Override
   public T getByIdOrThrowException(Class<T> clazz, long id) {
     return Optional.ofNullable(entityManager.find(clazz, id))
-        .orElseThrow(() -> new EntityExistsException("Entity with id=" + id + " was not found"));
+        .orElseThrow(() -> new EntityNotFoundException("Entity with id=" + id + " was not found"));
   }
 
   @Override
   public void delete(IdentifiedEntity entity) {
     entityManager.getTransaction().begin();
     entityManager.remove(entity);
+    entityManager.getTransaction().commit();
+  }
+
+  @Override
+  public void update(IdentifiedEntity entity) {
+    entityManager.getTransaction().begin();
+    entityManager.merge(entity);
     entityManager.getTransaction().commit();
   }
 }

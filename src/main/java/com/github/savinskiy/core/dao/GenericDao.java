@@ -14,4 +14,6 @@ public interface GenericDao<T extends IdentifiedEntity> {
   T getByIdOrThrowException(Class<T> clazz, long id);
 
   void delete(IdentifiedEntity entity);
+
+  void update(IdentifiedEntity entity);
 }
