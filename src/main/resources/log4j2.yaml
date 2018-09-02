@@ -24,7 +24,7 @@ Configuration:
   Loggers:
     logger:
       -
-        name: org.apache.logging.log4j.test1
+        name: com.github.savinskiy
         level: debug
         additivity: false
         ThreadContextMapFilter:
@@ -34,12 +34,12 @@ Configuration:
         AppenderRef:
           ref: STDOUT
       -
-        name: org.apache.logging.log4j.test2
+        name: com.github.savinskiy
         level: debug
         additivity: false
         AppenderRef:
           ref: File
     Root:
-      level: error
+      level: debug
       AppenderRef:
-        ref: STDOUT
+        ref: File
