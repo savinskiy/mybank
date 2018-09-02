@@ -1,5 +1,7 @@
 package com.github.savinskiy.core.configuration;
 
+import com.github.savinskiy.core.dao.TransactionDao;
+import com.github.savinskiy.core.dao.impl.TransactionDaoTransactionedImpl;
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
 import com.github.savinskiy.converters.AccountConverter;
@@ -27,6 +29,7 @@ public class AppModule extends AbstractModule {
     bind(TransactionService.class).to(TransactionServiceImpl.class).asEagerSingleton();
     bind(GenericDao.class).to(GenericDaoTransactionedImpl.class).asEagerSingleton();
     bind(AccountDao.class).to(AccountDaoTransactionedImpl.class).asEagerSingleton();
+    bind(TransactionDao.class).to(TransactionDaoTransactionedImpl.class).asEagerSingleton();
 //    bind(GenericDao.class).to(GenericDaoImpl.class).asEagerSingleton();
     bind(new TypeLiteral<GenericDao<Account>>() {
     })

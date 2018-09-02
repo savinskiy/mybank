@@ -1,38 +1,38 @@
 package com.github.savinskiy.services.impl;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
 import com.github.savinskiy.converters.BalanceConverter;
 import com.github.savinskiy.converters.TransactionConverter;
 import com.github.savinskiy.core.dao.AccountDao;
-import com.github.savinskiy.core.dao.GenericDao;
+import com.github.savinskiy.core.dao.TransactionDao;
 import com.github.savinskiy.core.entities.Account;
 import com.github.savinskiy.core.entities.Balance;
 import com.github.savinskiy.core.entities.Transaction;
+import com.github.savinskiy.rest.to.BalanceTo;
+import com.github.savinskiy.rest.to.TransactionTo;
+import com.github.savinskiy.services.TransactionService;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import com.github.savinskiy.rest.to.BalanceTo;
-import com.github.savinskiy.rest.to.TransactionTo;
-import com.github.savinskiy.services.TransactionService;
 
 @Singleton
 public class TransactionServiceImpl implements TransactionService {
 
-  private final GenericDao<Transaction> genericDao;
+  private final TransactionDao transactionDao;
   private final AccountDao accountDao;
   private final TransactionConverter transactionConverter;
   private final BalanceConverter balanceConverter;
 
   @Inject
-  public TransactionServiceImpl(GenericDao genericDao,
+  public TransactionServiceImpl(TransactionDao transactionDao,
       AccountDao accountDao,
       TransactionConverter transactionConverter,
       BalanceConverter balanceConverter) {
 
-    this.genericDao = genericDao;
+    this.transactionDao = transactionDao;
     this.accountDao = accountDao;
     this.transactionConverter = transactionConverter;
     this.balanceConverter = balanceConverter;
@@ -65,7 +65,7 @@ public class TransactionServiceImpl implements TransactionService {
         accountDao.save(fromAcc);
         accountDao.save(toAcc);
         // TODO: 29.08.2018 check transaction is already active
-        genericDao.save(transaction);
+        transactionDao.save(transaction);
       }
     }
     TransactionTo resultTo = transactionConverter.toTo(transaction);
@@ -89,7 +89,7 @@ public class TransactionServiceImpl implements TransactionService {
     transaction.setAmount(deposit);
     transaction.setAccountTo(account);
     transaction.setAccountFrom(null);
-    genericDao.save(transaction);
+    transactionDao.save(transaction);
 
     TransactionTo transactionTo = transactionConverter.toTo(transaction);
     return transactionTo;
@@ -97,7 +97,7 @@ public class TransactionServiceImpl implements TransactionService {
 
   @Override
   public List<TransactionTo> getTransactions() {
-    List<Transaction> transactions = genericDao.getAll(Transaction.class);
+    List<Transaction> transactions = transactionDao.getAll(Transaction.class);
     List<TransactionTo> transactionTos = transactions.stream()
         .map(transactionConverter::toTo)
         .collect(Collectors.toList());
@@ -106,7 +106,7 @@ public class TransactionServiceImpl implements TransactionService {
 
   @Override
   public TransactionTo getTransactionById(Long id) {
-    Transaction transaction = genericDao.getByIdOrThrowException(Transaction.class, id);
+    Transaction transaction = transactionDao.getByIdOrThrowException(Transaction.class, id);
     TransactionTo transactionTo = transactionConverter.toTo(transaction);
     return transactionTo;
   }
