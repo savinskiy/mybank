@@ -9,6 +9,10 @@ import com.github.savinskiy.core.entities.Account;
 import com.github.savinskiy.core.entities.Balance;
 import com.github.savinskiy.core.entities.Balance.Currency;
 import com.github.savinskiy.core.entities.Transaction;
+import com.github.savinskiy.rest.ServerLauncher;
+import com.github.savinskiy.rest.to.AccountTo;
+import com.github.savinskiy.rest.to.BalanceTo;
+import com.github.savinskiy.rest.to.TransactionTo;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.ext.unit.Async;
@@ -18,21 +22,19 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.client.WebClient;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Semaphore;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import com.github.savinskiy.rest.ServerLauncher;
-import com.github.savinskiy.rest.to.AccountTo;
-import com.github.savinskiy.rest.to.BalanceTo;
-import com.github.savinskiy.rest.to.TransactionTo;
 
 @RunWith(VertxUnitRunner.class)
 public class TransactionRouterTest {
@@ -40,20 +42,20 @@ public class TransactionRouterTest {
   private static final String ACC_START_AMOUNT = "12.3";
   private static final String SERVER_HOST = "localhost";
 
-  private int serverPort;
+  private static int serverPort;
 
-  private Vertx vertx;
+  private static Vertx vertx;
 
-  private AccountDao accountDao;
-  private GenericDao<Transaction> genericDao;
+  private static AccountDao accountDao;
+  private static GenericDao<Transaction> genericDao;
 
-  private List<Long> accountIds = new ArrayList<>();
+  private static List<Long> accountIds = new ArrayList<>();
 
   @Rule
-  public Timeout timeoutRule = Timeout.seconds(300);
+  public Timeout timeoutRule = Timeout.seconds(180);
 
-  @Before
-  public void setUp(TestContext context) {
+  @BeforeClass
+  public static void setUp(TestContext context) {
     DbModule.APPLICATION_PROPERTIES = "src/test/resources/application.properties";
     DatabaseLauncher.run(15432, "pg-config-test");
     // need to initialize it before deploying verticle
@@ -66,13 +68,14 @@ public class TransactionRouterTest {
         context.asyncAssertSuccess());
   }
 
-  @After
-  public void tearDown(TestContext context) {
+  @AfterClass
+  public static void tearDown(TestContext context) {
     DatabaseLauncher.stop();
     vertx.close(context.asyncAssertSuccess());
   }
 
-  // TODO: 29.08.2018 write tests for other API
+  // TODO: 29.08.2018 write more tests for transactions
+  // TODO: 29.08.2018 move out account test to other class
 //    @Repeat(100)
   @Test
 //  @Ignore
@@ -118,8 +121,9 @@ public class TransactionRouterTest {
         .send(ar -> {
           if (ar.succeeded()) {
             JsonArray accountsArray = ar.result().bodyAsJsonArray();
-            List<AccountTo> accounts = IntStream.range(0, accountIds.size())
+            List<AccountTo> accounts = IntStream.range(0, accountsArray.size())
                 .mapToObj(accountsArray::getJsonObject)
+                .filter(accountTo -> accountIds.contains(accountTo.getLong("id")))
                 .map(json -> json.mapTo(AccountTo.class))
                 .collect(Collectors.toList());
 
@@ -141,7 +145,124 @@ public class TransactionRouterTest {
 
   }
 
-  private void loadDatabase() {
+  @Test
+  public void testCreateAccount(TestContext context) throws InterruptedException {
+
+    final Async async = context.async();
+
+    WebClient webClient = WebClient.create(vertx);
+
+    AccountTo accountTo = buildAccountTo();
+
+    webClient.post(serverPort, SERVER_HOST, "/api/accounts")
+        .sendJson(accountTo, ar -> {
+          if (ar.succeeded()) {
+            AccountTo result = ar.result().bodyAsJson(AccountTo.class);
+            context.assertEquals(accountTo.getName(), result.getName());
+            context.assertEquals(accountTo.getDetails(), result.getDetails());
+            BigDecimal totalAmount = result.getBalances().stream()
+                .map(BalanceTo::getValue)
+                .reduce(BigDecimal::add)
+                .orElseThrow(IllegalStateException::new);
+            context.assertEquals(BigDecimal.ZERO, totalAmount);
+            async.complete();
+          } else {
+            System.out.println(ar.cause());
+          }
+        });
+  }
+
+  @Test
+  public void testGetAccount(TestContext context) throws InterruptedException {
+
+    final Async async = context.async();
+
+    WebClient webClient = WebClient.create(vertx);
+
+    webClient.get(serverPort, SERVER_HOST, "/api/accounts/" + accountIds.get(0))
+        .send(ar -> {
+          if (ar.succeeded()) {
+            AccountTo result = ar.result().bodyAsJson(AccountTo.class);
+            context.assertEquals("alex", result.getName());
+            context.assertEquals("details", result.getDetails());
+
+            BigDecimal totalAmount = result.getBalances().stream()
+                .map(BalanceTo::getValue)
+                .reduce(BigDecimal::add)
+                .orElseThrow(IllegalStateException::new);
+
+            BigDecimal expected = new BigDecimal(ACC_START_AMOUNT).setScale(totalAmount.scale());
+
+            context.assertEquals(expected, totalAmount);
+            async.complete();
+          } else {
+            System.out.println(ar.cause());
+          }
+        });
+  }
+
+  @Test
+  public void testGetAllAccounts(TestContext context) throws InterruptedException {
+
+    final Async async = context.async();
+
+    WebClient webClient = WebClient.create(vertx);
+
+    webClient.get(serverPort, SERVER_HOST, "/api/accounts")
+        .send(ar -> {
+          if (ar.succeeded()) {
+            JsonArray accountsArray = ar.result().bodyAsJsonArray();
+            List<Long> accounts = IntStream.range(0, accountsArray.size())
+                .mapToObj(accountsArray::getJsonObject)
+                .map(accountTo -> accountTo.getLong("id"))
+                .collect(Collectors.toList());
+            context.assertTrue(accounts.containsAll(accountIds));
+
+            async.complete();
+          } else {
+            System.out.println(ar.cause());
+          }
+        });
+  }
+
+  @Test
+  public void testDeleteAccount(TestContext context) throws InterruptedException {
+
+    final Async async = context.async(2);
+
+    WebClient webClient = WebClient.create(vertx);
+
+    Account account = buildAccount("doomed acc", "account for deletion",
+        Currency.BTC, "1000000");
+    accountDao.save(account);
+    Semaphore semaphore = new Semaphore(1);
+    webClient.delete(serverPort, SERVER_HOST, "/api/accounts/" + account.getId())
+        .send(ar -> {
+          semaphore.release();
+          if (ar.succeeded()) {
+            async.countDown();
+          } else {
+            System.out.println(ar.cause());
+          }
+        });
+
+    semaphore.acquire();
+
+    webClient.get(serverPort, SERVER_HOST, "/api/accounts/" + account.getId())
+        .send(ar -> {
+          if (ar.succeeded()) {
+            // TODO: 03.09.2018 check status code must be 404
+            System.out.println(ar.result().statusCode());
+            context.assertInRange(400, ar.result().statusCode(), 199);
+            async.complete();
+          } else {
+            throw new RuntimeException("Something went wrong during deletion: " + ar.cause());
+          }
+        });
+  }
+
+
+  private static void loadDatabase() {
 
     Account account = buildAccount("alex", "details", Currency.BTC, ACC_START_AMOUNT);
     accountDao.save(account);
@@ -154,7 +275,7 @@ public class TransactionRouterTest {
     accountIds.add(account3.getId());
   }
 
-  private Account buildAccount(
+  private static Account buildAccount(
       String name,
       String details,
       Balance.Currency currency,
@@ -168,13 +289,28 @@ public class TransactionRouterTest {
     return account;
   }
 
-  private Balance findBalanceByCurrency(Account account, Balance.Currency currency) {
+  private static Balance findBalanceByCurrency(Account account, Balance.Currency currency) {
 
     return account.getBalances().stream()
         .filter(balance -> balance.getCurrency().equals(currency))
         .findFirst()
         .orElseThrow(() -> new IllegalStateException(
             "Unknown type of currency: " + currency));
+  }
+
+  private AccountTo buildAccountTo() {
+
+    AccountTo account = new AccountTo();
+    account.setName("hacker");
+    account.setDetails("get rich or die trying");
+    account.setBalances(Collections.singletonList(
+        BalanceTo.builder()
+            .currency(BalanceTo.Currency.USD)
+            .value(BigDecimal.valueOf(1_000_000))
+            .build()
+        )
+    );
+    return account;
   }
 
   private TransactionTo buildRandomTransaction(BalanceTo.Currency currency, double amountCap) {
@@ -199,7 +335,7 @@ public class TransactionRouterTest {
     return ids.remove(i);
   }
 
-  private int getPortFromProperties() {
+  private static int getPortFromProperties() {
     Properties properties = DbModule.getProperties();
     String port = properties.getProperty("server.port");
     return Integer.parseInt(port);
