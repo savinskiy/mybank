@@ -236,6 +236,7 @@ public class TransactionRouterTest {
         Currency.BTC, "1000000");
     accountDao.save(account);
     Semaphore semaphore = new Semaphore(1);
+    semaphore.acquire();
     webClient.delete(serverPort, SERVER_HOST, "/api/accounts/" + account.getId())
         .send(ar -> {
           semaphore.release();
