@@ -13,7 +13,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
-// TODO: 29.08.2018 make field isDeleted
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
