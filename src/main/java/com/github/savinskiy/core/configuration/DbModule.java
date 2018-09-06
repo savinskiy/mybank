@@ -35,8 +35,10 @@ public class DbModule extends AbstractModule {
   public void configure() {
     try {
       properties.load(new FileReader(APPLICATION_PROPERTIES));
+      log.trace("Loaded properties: {}", properties);
     } catch (IOException e) {
-      log.error("Failed to load properties from " + APPLICATION_PROPERTIES);
+      log.error("Failed to load properties from {}, cause: {}",
+          APPLICATION_PROPERTIES, e);
       throw new RuntimeException(e);
     }
     Names.bindProperties(binder(), properties);
@@ -49,6 +51,7 @@ public class DbModule extends AbstractModule {
     Map<Object, Object> hibernateProperties = properties.entrySet().stream()
         .filter(e -> String.valueOf(e.getKey()).startsWith("hibernate."))
         .collect(Collectors.toMap(Entry::getKey, this::mapValue));
+    log.trace("Hibernate properties: {}", hibernateProperties);
 
     return Persistence.createEntityManagerFactory("db-manager", hibernateProperties);
   }

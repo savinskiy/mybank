@@ -8,8 +8,10 @@ import java.util.List;
 import java.util.Optional;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 
 @Singleton
+@Slf4j
 public class GenericDaoTransactionedImpl<T extends IdentifiedEntity> implements GenericDao<T> {
 
   private final EntityManager entityManager;
@@ -34,10 +36,12 @@ public class GenericDaoTransactionedImpl<T extends IdentifiedEntity> implements 
         return entityManager.createQuery(
             "Select t from " + clazz.getSimpleName() + " t").getResultList();
       } catch (Exception e) {
-        System.out.println(e);
-        System.out.println("Repeat number: " + (i + 1));
+        log.error("Exception while getting resultSet of {} from database: {}",
+            clazz, e);
+        log.error("Repeat number: {}", i + 1);
       }
     }
+    log.error("Unsuccessful fetching {} from database", clazz);
     return null;
   }
 

@@ -2,15 +2,12 @@ package com.github.savinskiy;
 
 import com.github.savinskiy.core.configuration.DIContainer;
 import com.github.savinskiy.core.configuration.DatabaseLauncher;
+import com.github.savinskiy.rest.ServerLauncher;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.github.savinskiy.rest.ServerLauncher;
 
 //// TODO: 23.08.2018 todo multimodule, probably get rid of guice dependency
-//// TODO: 23.08.2018 todo logs
 // TODO: 02.09.2018 injection of database initializer
 // TODO: 02.09.2018 readme
 @Slf4j
@@ -31,9 +28,9 @@ public class Main {
 
     vertx.deployVerticle(verticle.getName(), r -> {
       if (r.succeeded()) {
-        System.out.println("Server is deployed");
+        log.info("Server is deployed");
       } else {
-        System.out.println(r.cause());
+        log.error("Failed to deploy server: {}", r.cause());
       }
     });
 

@@ -5,11 +5,13 @@ import com.github.savinskiy.core.entities.Account;
 import com.github.savinskiy.core.entities.Transaction;
 import com.github.savinskiy.rest.to.TransactionTo;
 import com.google.inject.Inject;
+import lombok.extern.slf4j.Slf4j;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
 import org.mapstruct.factory.Mappers;
 
+@Slf4j
 @Mapper(componentModel = "jsr330", uses = BalanceConverter.class)
 public abstract class TransactionConverter implements
     EntityToConverter<Transaction, TransactionTo> {
@@ -36,6 +38,7 @@ public abstract class TransactionConverter implements
 
   public Account map(long id) {
     Account account = accountDao.getByIdOrThrowException(Account.class, id);
+    log.trace("Getting account in converter: {}", account);
     return account;
   }
 }

@@ -31,22 +31,28 @@ public class DatabaseLauncher {
       try (Connection connection = embeddedPostgres.getPostgresDatabase().getConnection()) {
         createDatabase(connection, TEST_DATABASE_NAME, DEFAULT_USERNAME);
       } catch (SQLException e) {
-        log.warn("Failed to create database: " , e.getMessage(), e);
+        log.warn("Failed to create database: ", e.getMessage(), e);
       }
     } catch (IOException e) {
+      log.error("Couldn't set up postgres: {}", e);
       throw new IllegalStateException("Couldn't set up postgres", e);
     } catch (IllegalStateException e) {
-      throw new IllegalStateException("Failed to start postgres due to: " + e.getMessage()
+      String errorMessage = "Failed to start postgres due to: " + e.getMessage()
           + "\nTry to delete pg-config directory in this project.\n"
-          + "If it wouldn't help, check that there are no running PG processes on the port", e);
+          + "If it wouldn't help, check that there are no running PG processes on the port";
+      log.error(errorMessage);
+      throw new IllegalStateException(errorMessage, e);
     }
   }
 
   public static void stop() {
     if (embeddedPostgres != null) {
       try {
+        log.info("Shutting down postgres manually");
         embeddedPostgres.close();
+        log.info("Postgres stopped");
       } catch (Exception e) {
+        log.error("Couldn't shut down database: {}", e);
         throw new IllegalStateException("Couldn't shut down database", e);
       }
     }
@@ -56,7 +62,7 @@ public class DatabaseLauncher {
       throws SQLException {
     String createQuery = "CREATE DATABASE %s OWNER %s ENCODING = 'utf8'";
 
-    log.info("Create database '{}' with user: {}", userName);
+    log.info("Create database '{}' with user: {}", dbName, userName);
     try (PreparedStatement ps = c.prepareStatement(String.format(createQuery, dbName, userName))) {
       ps.execute();
     }
