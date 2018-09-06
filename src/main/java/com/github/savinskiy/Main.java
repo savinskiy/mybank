@@ -4,6 +4,7 @@ import com.github.savinskiy.core.configuration.DIContainer;
 import com.github.savinskiy.core.configuration.DatabaseLauncher;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.github.savinskiy.rest.ServerLauncher;
@@ -12,10 +13,8 @@ import com.github.savinskiy.rest.ServerLauncher;
 //// TODO: 23.08.2018 todo logs
 // TODO: 02.09.2018 injection of database initializer
 // TODO: 02.09.2018 readme
-//@Slf4j
+@Slf4j
 public class Main {
-
-  private static Logger log = LoggerFactory.getLogger(Main.class);
 
   public static void main(String[] args) {
     log.info("Start mybank application");

@@ -6,10 +6,11 @@ Configuration:
       name: filename
       value: target/test-yaml.log
   thresholdFilter:
-    level: debug
+    level: TRACE
   appenders:
     Console:
       name: STDOUT
+      target: SYSTEM_OUT
       PatternLayout:
         Pattern: "%highlight{%level}{ERROR=red, WARN=yellow, INFO=green, DEBUG=blue} %m%n"
     File:
@@ -17,15 +18,12 @@ Configuration:
       fileName: bank.log
       PatternLayout:
         Pattern: "%d %p %C{1.} [%t] %highlight{%level}{ERROR=red, WARN=yellow, INFO=green, DEBUG=blue} %m%n"
-      Filters:
-        ThresholdFilter:
-          level: error
 
   Loggers:
     logger:
       -
         name: com.github.savinskiy
-        level: debug
+        level: ERROR
         additivity: false
         ThreadContextMapFilter:
           KeyValuePair:
@@ -35,11 +33,11 @@ Configuration:
           ref: STDOUT
       -
         name: com.github.savinskiy
-        level: debug
+        level: TRACE
         additivity: false
         AppenderRef:
           ref: File
     Root:
-      level: debug
+      level: ERROR
       AppenderRef:
         ref: File
