@@ -252,8 +252,8 @@ public class TransactionRouterTest {
     webClient.get(serverPort, SERVER_HOST, "/api/accounts/" + account.getId())
         .send(ar -> {
           if (ar.succeeded()) {
-            // TODO: 03.09.2018 check status code must be 404
-            System.out.println(ar.result().statusCode());
+            // TODO: 03.09.2018 check status code must be 404 not 500
+//            System.out.println(ar.result().statusCode());
             context.assertInRange(400, ar.result().statusCode(), 199);
             async.complete();
           } else {
