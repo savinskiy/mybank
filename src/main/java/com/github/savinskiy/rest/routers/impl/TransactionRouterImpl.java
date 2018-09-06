@@ -5,6 +5,7 @@ import com.github.savinskiy.rest.to.BalanceTo;
 import com.github.savinskiy.rest.to.TransactionTo;
 import com.github.savinskiy.services.TransactionService;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
