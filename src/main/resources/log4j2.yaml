@@ -13,12 +13,18 @@ Configuration:
       target: SYSTEM_OUT
       PatternLayout:
         Pattern: "%highlight{%level}{ERROR=red, WARN=yellow, INFO=green, DEBUG=blue} %m%n"
-    File:
-      name: File
-      fileName: bank.log
+    RollingFile:
+      name: RollingFile
+      fileName: logs/bank.log
+      filePattern: "logs/archive/bank.log.%d{yyyy-MM-dd-hh-mm}.gz"
       PatternLayout:
         Pattern: "%d %p %C{1.} [%t] %highlight{%level}{ERROR=red, WARN=yellow, INFO=green, DEBUG=blue} %m%n"
-
+      Policies:
+        SizeBasedTriggeringPolicy:
+          size: "20 MB"
+        OnStartupTriggeringPolicy: {}
+      DefaultRolloverStrategy:
+        max: 5
   Loggers:
     logger:
       -
@@ -33,11 +39,11 @@ Configuration:
           ref: STDOUT
       -
         name: com.github.savinskiy
-        level: TRACE
+        level: DEBUG
         additivity: false
         AppenderRef:
-          ref: File
+          ref: RollingFile
     Root:
       level: ERROR
       AppenderRef:
-        ref: File
+        ref: RollingFile

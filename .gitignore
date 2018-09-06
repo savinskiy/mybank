@@ -11,6 +11,9 @@ gen### Java template
 # Log file
 *.log
 
+# Archive file
+*.gz
+
 # BlueJ files
 *.ctxt
 
