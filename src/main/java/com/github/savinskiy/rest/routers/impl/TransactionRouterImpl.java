@@ -12,6 +12,7 @@ import io.vertx.ext.web.RoutingContext;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
+@Singleton
 @Slf4j
 public class TransactionRouterImpl implements TransactionRouter {
 
